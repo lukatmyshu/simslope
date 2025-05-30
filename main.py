@@ -24,6 +24,8 @@ class SlopeDetectionApp:
         self.frame_count = 0
         self.last_fps_time = time.time()
         self.fps = 0
+        self.last_message_check = 0
+        self.message_check_interval = 0.1  # Check messages every 100ms
 
     def calculate_fps(self):
         """Calculate and display FPS."""
@@ -49,6 +51,25 @@ class SlopeDetectionApp:
             cv2.setUseOptimized(True)
             cv2.ocl.setUseOpenCL(True)
 
+            # Import Windows-specific modules
+            try:
+                import win32gui
+                import win32con
+                self.win32gui = win32gui
+                self.win32con = win32con
+            except ImportError:
+                print("Warning: win32gui not available. Windows message handling will be limited.")
+                self.win32gui = None
+
+    def process_windows_messages(self):
+        """Process Windows messages to prevent 'not responding' state."""
+        if platform.system() == "Windows" and self.win32gui:
+            try:
+                # Process all pending messages
+                self.win32gui.PumpWaitingMessages()
+            except Exception as e:
+                print(f"Error processing Windows messages: {e}")
+
     def run(self):
         """Main application loop."""
         self.running = True
@@ -65,6 +86,12 @@ class SlopeDetectionApp:
 
         while self.running:
             try:
+                # Process Windows messages periodically
+                current_time = time.time()
+                if current_time - self.last_message_check >= self.message_check_interval:
+                    self.process_windows_messages()
+                    self.last_message_check = current_time
+
                 # Capture screen
                 frame = self.screen_capture.capture_golf_view()
                 if frame is None:
