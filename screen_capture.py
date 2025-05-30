@@ -1,5 +1,5 @@
 """
-Screen capture module for E6 TruGolf Grass Slope Detection System.
+Screen capture module for E6 TruGolf and GSPro Grass Slope Detection System.
 Handles window detection and screen capture functionality.
 """
 
@@ -10,7 +10,7 @@ import mss.tools
 from PIL import Image
 import cv2
 import time
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 import config
 
 class ScreenCapture:
@@ -20,29 +20,33 @@ class ScreenCapture:
         self.capture_region = None
         self.last_capture_time = 0
         self.frame_interval = 1.0 / config.CAPTURE_FPS
+        self.current_simulator = None
 
-    def find_e6_window(self) -> Optional[gw.Window]:
-        """Find and return E6 TruGolf window coordinates."""
+    def find_simulator_window(self) -> Optional[Tuple[gw.Window, str]]:
+        """Find and return simulator window coordinates and type."""
         try:
-            windows = gw.getWindowsWithTitle(config.WINDOW_TITLE_PATTERN)
-            if windows:
-                self.window = windows[0]
-                return self.window
-            return None
+            for simulator, settings in config.SIMULATOR_WINDOWS.items():
+                windows = gw.getWindowsWithTitle(settings["title_pattern"])
+                if windows:
+                    return windows[0], simulator
+            return None, None
         except Exception as e:
-            print(f"Error finding E6 window: {e}")
-            return None
+            print(f"Error finding simulator window: {e}")
+            return None, None
 
     def get_optimal_capture_region(self) -> Optional[dict]:
         """Determine best screen region for grass detection."""
-        if not self.window:
+        if not self.window or not self.current_simulator:
             return None
+
+        # Get simulator-specific settings
+        settings = config.SIMULATOR_WINDOWS[self.current_simulator]
 
         # Get window position and size
         left = self.window.left
-        top = self.window.top + config.UI_MARGIN_TOP
+        top = self.window.top + settings["ui_margin_top"]
         width = self.window.width
-        height = self.window.height - (config.UI_MARGIN_TOP + config.UI_MARGIN_BOTTOM)
+        height = self.window.height - (settings["ui_margin_top"] + settings["ui_margin_bottom"])
 
         return {
             "left": left,
@@ -58,7 +62,7 @@ class ScreenCapture:
             return None
 
         if not self.window:
-            self.window = self.find_e6_window()
+            self.window, self.current_simulator = self.find_simulator_window()
             if not self.window:
                 return None
 
@@ -91,6 +95,10 @@ class ScreenCapture:
         except Exception as e:
             print(f"Error capturing screen: {e}")
             return None
+
+    def get_current_simulator(self) -> Optional[str]:
+        """Return the currently detected simulator type."""
+        return self.current_simulator
 
     def cleanup(self):
         """Clean up resources."""

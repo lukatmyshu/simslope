@@ -1,5 +1,5 @@
 """
-Main application for E6 TruGolf Grass Slope Detection System.
+Main application for E6 TruGolf and GSPro Grass Slope Detection System.
 Integrates all components and handles the main processing loop.
 """
 
@@ -23,8 +23,9 @@ class SlopeDetectionApp:
     def run(self):
         """Main application loop."""
         self.running = True
-        print("Starting E6 Slope Detection System...")
+        print("Starting Golf Slope Detection System...")
         print("Press 'q' to quit")
+        print("Waiting for E6 TruGolf or GSPro window...")
 
         while self.running:
             # Capture screen
@@ -32,6 +33,11 @@ class SlopeDetectionApp:
             if frame is None:
                 time.sleep(0.1)
                 continue
+
+            # Get current simulator type
+            simulator = self.screen_capture.get_current_simulator()
+            if simulator:
+                print(f"Detected simulator: {simulator}")
 
             # Detect grass
             grass_mask, grass_confidence = self.grass_detector.segment_grass(frame)
@@ -52,7 +58,8 @@ class SlopeDetectionApp:
                 grass_mask,
                 slope_angle,
                 side_slope,
-                confidence
+                confidence,
+                simulator
             )
             self.display.show_frame(overlay)
 

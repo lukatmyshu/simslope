@@ -11,6 +11,12 @@ import config
 class GrassDetector:
     def __init__(self):
         self.kernel = np.ones(config.MORPH_KERNEL_SIZE, np.uint8)
+        # GSPro-specific: Additional color ranges for different grass types
+        self.grass_ranges = [
+            (config.GRASS_HSV_LOWER, config.GRASS_HSV_UPPER),  # Standard green
+            ((35, 30, 30), (45, 255, 255)),  # Light green
+            ((50, 30, 30), (70, 255, 255)),  # Dark green
+        ]
 
     def segment_grass(self, frame: np.ndarray) -> Tuple[np.ndarray, float]:
         """
@@ -20,11 +26,14 @@ class GrassDetector:
         # Convert to HSV color space
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
-        # Create mask for grass color range
-        mask = cv2.inRange(hsv, config.GRASS_HSV_LOWER, config.GRASS_HSV_UPPER)
+        # Create combined mask for all grass color ranges
+        combined_mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+        for lower, upper in self.grass_ranges:
+            mask = cv2.inRange(hsv, lower, upper)
+            combined_mask = cv2.bitwise_or(combined_mask, mask)
         
         # Clean up the mask
-        mask = self.clean_grass_mask(mask)
+        mask = self.clean_grass_mask(combined_mask)
         
         # Calculate confidence based on grass coverage
         confidence = self.validate_grass_region(mask)

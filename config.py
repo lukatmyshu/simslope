@@ -1,5 +1,5 @@
 """
-Configuration settings for the E6 TruGolf Grass Slope Detection System.
+Configuration settings for the E6 TruGolf and GSPro Grass Slope Detection System.
 """
 
 # Color ranges for grass detection (HSV)
@@ -16,9 +16,18 @@ CAPTURE_FPS = 12
 PROCESSING_DOWNSCALE = 0.5  # Scale factor for faster processing
 
 # Window detection settings
-WINDOW_TITLE_PATTERN = "E6 TruGolf"  # Pattern to match E6 window title
-UI_MARGIN_TOP = 50    # Pixels to skip from top of window
-UI_MARGIN_BOTTOM = 50 # Pixels to skip from bottom of window
+SIMULATOR_WINDOWS = {
+    "E6": {
+        "title_pattern": "E6 TruGolf",
+        "ui_margin_top": 50,
+        "ui_margin_bottom": 50
+    },
+    "GSPro": {
+        "title_pattern": "GSPro",
+        "ui_margin_top": 0,
+        "ui_margin_bottom": 0
+    }
+}
 
 # Slope detection parameters
 MAX_SLOPE_ANGLE = 15  # Maximum expected slope angle in degrees

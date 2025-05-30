@@ -1,5 +1,5 @@
 """
-UI display module for E6 TruGolf Grass Slope Detection System.
+UI display module for E6 TruGolf and GSPro Grass Slope Detection System.
 Handles real-time display and visualization.
 """
 
@@ -10,13 +10,13 @@ import config
 
 class DisplayUI:
     def __init__(self):
-        self.window_name = "E6 Slope Detection"
+        self.window_name = "Golf Slope Detection"
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.window_name, config.DISPLAY_WIDTH, config.DISPLAY_HEIGHT)
 
     def create_overlay(self, frame: np.ndarray, grass_mask: np.ndarray,
                       slope_angle: float, side_slope: float,
-                      confidence: float) -> np.ndarray:
+                      confidence: float, simulator: Optional[str] = None) -> np.ndarray:
         """Create visualization overlay with slope information."""
         # Create a copy of the frame for drawing
         overlay = frame.copy()
@@ -39,7 +39,7 @@ class DisplayUI:
         self._draw_slope_indicator(overlay, slope_angle, side_slope)
         
         # Add text information
-        self._add_text_info(overlay, slope_angle, side_slope, confidence)
+        self._add_text_info(overlay, slope_angle, side_slope, confidence, simulator)
         
         return overlay
 
@@ -91,38 +91,54 @@ class DisplayUI:
             )
 
     def _add_text_info(self, overlay: np.ndarray, slope_angle: float,
-                      side_slope: float, confidence: float):
+                      side_slope: float, confidence: float,
+                      simulator: Optional[str] = None):
         """Add text information to the overlay."""
         # Format text information
+        simulator_text = f"Simulator: {simulator if simulator else 'Not Detected'}"
         slope_text = f"Slope: {slope_angle:.1f}°"
         side_text = f"Side Slope: {side_slope:.1f}°"
         conf_text = f"Confidence: {confidence*100:.0f}%"
         
         # Add text to overlay
+        y_offset = 30
+        cv2.putText(
+            overlay,
+            simulator_text,
+            (10, y_offset),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (255, 255, 255),
+            2
+        )
+        
+        y_offset += 40
         cv2.putText(
             overlay,
             slope_text,
-            (10, 30),
+            (10, y_offset),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             (255, 255, 255),
             2
         )
         
+        y_offset += 40
         cv2.putText(
             overlay,
             side_text,
-            (10, 70),
+            (10, y_offset),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             (255, 255, 255),
             2
         )
         
+        y_offset += 40
         cv2.putText(
             overlay,
             conf_text,
-            (10, 110),
+            (10, y_offset),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             (255, 255, 255),
